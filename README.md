@@ -105,6 +105,22 @@ This is the simple version. It does not fill the gap in data from while the sock
 
 **Will I miss messages during a reconnect?** Yes, whatever happened while the socket was down is not replayed. If you need every transaction, backfill with `getSignaturesForAddress` after `onState` reports `open` again.
 
+## Contributing
+
+Pull requests are welcome, and this is a good first open source project: the whole library is a few hundred lines, there is nothing to install, and `npm test` runs in a second.
+
+[![good first issues](https://img.shields.io/github/issues/blixvip/solana-ws-keepalive/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/blixvip/solana-ws-keepalive/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22)
+[![help wanted](https://img.shields.io/github/issues/blixvip/solana-ws-keepalive/help%20wanted?label=help%20wanted&color=008672)](https://github.com/blixvip/solana-ws-keepalive/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22help%20wanted%22)
+[![Discord](https://img.shields.io/badge/Discord-ask%20before%20you%20build-5865F2?logo=discord&logoColor=white)](https://discord.gg/grokbot)
+
+1. Pick a [good first issue](https://github.com/blixvip/solana-ws-keepalive/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22) and comment that you are taking it.
+2. `git clone`, change the code, add a test, `npm test`.
+3. Open a pull request. Contributors are credited in the release notes.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Questions go in the [Discord](https://discord.gg/grokbot).
+
+<a href="https://github.com/blixvip/solana-ws-keepalive/graphs/contributors"><img src="https://contrib.rocks/image?repo=blixvip/solana-ws-keepalive" alt="Contributors to solana-ws-keepalive"></a>
+
 ## More from Blix
 
 | | |

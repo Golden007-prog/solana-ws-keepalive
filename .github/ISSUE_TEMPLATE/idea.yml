@@ -1,0 +1,18 @@
+name: Idea
+description: Something solana-ws-keepalive should do
+labels: [enhancement]
+body:
+  - type: textarea
+    attributes:
+      label: The problem
+      description: What are you trying to do that is hard today?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What you would add
+  - type: checkboxes
+    attributes:
+      label: Building it
+      options:
+        - label: I would like to build this myself

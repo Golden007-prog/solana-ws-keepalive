@@ -1,0 +1,20 @@
+name: Bug report
+description: Something does not work as the README says
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What you ran
+      description: The code or command. Remove any API key from RPC URLs first.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What you expected, and what happened
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Node version and RPC provider
+      placeholder: "Node 22.11, Helius free plan"

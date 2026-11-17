@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a question or pitch an idea
+    url: https://discord.gg/grokbot
+    about: The Blix open source Discord. Fastest way to get an answer.
+  - name: Blix, the Solana memecoin terminal
+    url: https://blixvip.com
+    about: The full product these tools come from.
