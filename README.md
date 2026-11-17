@@ -7,7 +7,9 @@
 [![license: MIT](https://img.shields.io/badge/license-MIT-black)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/grokbot)
 
-[![Blix, the Solana memecoin terminal](assets/blix-terminal.jpg)](https://blixvip.com)
+<a href="https://blixvip.com"><img src="assets/blix-hero.jpg" width="100%" alt="BLIX: AI-powered Solana memecoin terminal. Trade memes first."></a>
+
+**[Start trading at blixvip.com →](https://blixvip.com)** &nbsp;·&nbsp; [Public API](https://blixvip.com/api) &nbsp;·&nbsp; [MCP server](https://blixvip.com/mcp) &nbsp;·&nbsp; [Discord](https://discord.gg/grokbot)
 
 Built by the team behind **[Blix](https://blixvip.com)**, the 0% fee Solana memecoin terminal. Blix listens to every pump.fun launch and trade around the clock; this is a small, open version of the part that keeps those streams from dying quietly.
 
@@ -114,6 +116,8 @@ This is the simple version. It does not fill the gap in data from while the sock
 **[Blix](https://blixvip.com)** is a Solana memecoin terminal with 0% fees on every trade: every pump.fun launch live, AI coin ratings, narratives, wallet and X tracking, and one-click trading.
 
 - Website: **https://blixvip.com**
+- Public API: https://blixvip.com/api &nbsp;·&nbsp; MCP server for AI agents: https://blixvip.com/mcp
+- More open source from the same team: https://github.com/blixvip
 - Questions, ideas, or help with this library: **[discord.gg/grokbot](https://discord.gg/grokbot)**
 
 ## License
