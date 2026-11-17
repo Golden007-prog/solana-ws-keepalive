@@ -1,0 +1,18 @@
+{
+  "name": "solana-ws-keepalive",
+  "version": "1.0.0",
+  "description": "Solana WebSocket subscriptions that reconnect on their own: dead-feed detection, backoff, automatic resubscribe. Zero dependencies. By Blix.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": "./src/index.js",
+  "bin": { "solana-ws-keepalive": "bin/cli.js" },
+  "files": ["src", "bin", "README.md", "LICENSE"],
+  "scripts": { "test": "node --test" },
+  "engines": { "node": ">=22" },
+  "keywords": ["solana", "websocket", "solana-websocket", "reconnect", "logsSubscribe", "accountSubscribe", "rpc", "realtime", "web3", "crypto", "blix"],
+  "author": "Blix (https://blixvip.com)",
+  "license": "MIT",
+  "homepage": "https://blixvip.com",
+  "repository": { "type": "git", "url": "git+https://github.com/blixvip/solana-ws-keepalive.git" },
+  "bugs": { "url": "https://github.com/blixvip/solana-ws-keepalive/issues" }
+}
