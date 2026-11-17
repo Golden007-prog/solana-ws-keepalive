@@ -30,8 +30,7 @@ Node 22 or newer is the easiest. That is the whole toolchain.
 ## What you get
 
 - Your name in the release notes of the version your change ships in.
-- A reviewer who answers. We aim to reply to every pull request within two days.
-- Regular contributors are invited to the contributors' channel in the [Discord](https://discord.gg/grokbot), where the roadmap for these tools and for [Blix](https://blixvip.com) is discussed.
+- A say in where it goes next: the roadmap issue and the [Discord](https://discord.gg/grokbot) are where that is decided.
 
 ## Bugs
 
