@@ -135,6 +135,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Questions go in the [Discord](https://di
 
 - Website: **https://blixvip.com**
 - This project's page: https://blixvip.github.io/solana-ws-keepalive/
+- Guide: [Why your Solana WebSocket stops receiving messages, and how to keep it alive](https://blixvip.github.io/solana-ws-keepalive/solana-websocket-stops-receiving-messages.html)
 - Public API: https://blixvip.com/api &nbsp;·&nbsp; MCP server for AI agents: https://blixvip.com/mcp
 - More open source from the same team: https://github.com/blixvip
 - Questions, ideas, or help with this library: **[discord.gg/grokbot](https://discord.gg/grokbot)**

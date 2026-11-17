@@ -33,7 +33,7 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:v
 </head>
 <body>
 <main>
-<nav><a class="brand" href="https://blixvip.com">BLIX open source</a><a href="https://github.com/blixvip/solana-ws-keepalive">GitHub</a><a href="https://github.com/blixvip/solana-ws-keepalive/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22">Good first issues</a><a href="https://discord.gg/grokbot">Discord</a><a href="https://blixvip.com">blixvip.com</a></nav>
+<nav><a class="brand" href="https://blixvip.github.io/">BLIX open source</a><a href="https://github.com/blixvip/solana-ws-keepalive">GitHub</a><a href="https://github.com/blixvip/solana-ws-keepalive/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22">Good first issues</a><a href="https://discord.gg/grokbot">Discord</a><a href="https://blixvip.com">blixvip.com</a></nav>
 <h1>solana-ws-keepalive</h1>
 <p class="tag">Solana WebSocket subscriptions that stay alive</p>
 <p class="lead">Detects a feed that has gone silent while the socket still looks open, reconnects with backoff, and puts every subscription back. Zero dependencies.</p>
@@ -50,6 +50,8 @@ const stream = createStream({ url, heartbeat: true });
 stream.subscribe("logsSubscribe", [{ mentions: [address] }], console.log);</code></pre>
 <p>Full documentation, the API and the FAQ are in the <a href="https://github.com/blixvip/solana-ws-keepalive#readme">README</a>. It is MIT licensed and has no dependencies.</p>
 <a class="hero" href="https://blixvip.com"><img src="https://raw.githubusercontent.com/blixvip/solana-ws-keepalive/main/assets/blix-hero.jpg" alt="BLIX: AI-powered Solana memecoin terminal. Trade memes first." width="1600" height="900" loading="lazy"></a>
+<h2>Guide</h2>
+<p><a href="solana-websocket-stops-receiving-messages.html">Why your Solana WebSocket stops receiving messages, and how to keep it alive</a></p>
 <h2>From the team behind Blix</h2>
 <p>solana-ws-keepalive is a small, open piece of what runs behind <a href="https://blixvip.com">Blix</a>, the AI-powered Solana memecoin terminal with 0% fees: every pump.fun launch live, AI coin ratings, narratives, wallet and X tracking, and one-click trading. If you want the result rather than the plumbing, <a href="https://blixvip.com">use Blix</a>. There is also a <a href="https://blixvip.com/api">public API</a> and an <a href="https://blixvip.com/mcp">MCP server</a> for AI agents.</p>
 <h2>Contribute</h2>

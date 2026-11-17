@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why your Solana WebSocket stops receiving messages, and how to keep it alive | Blix open source</title>
+<meta name="description" content="Solana logsSubscribe and accountSubscribe connections go silent without closing. How to detect a dead feed, reconnect with backoff, resubscribe, and use a heartbeat for quiet subscriptions.">
+<link rel="canonical" href="https://blixvip.github.io/solana-ws-keepalive/solana-websocket-stops-receiving-messages.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why your Solana WebSocket stops receiving messages, and how to keep it alive | Blix open source">
+<meta property="og:description" content="Solana logsSubscribe and accountSubscribe connections go silent without closing. How to detect a dead feed, reconnect with backoff, resubscribe, and use a heartbeat for quiet subscriptions.">
+<meta property="og:url" content="https://blixvip.github.io/solana-ws-keepalive/solana-websocket-stops-receiving-messages.html">
+<meta property="og:image" content="https://raw.githubusercontent.com/blixvip/pump-curve/main/assets/blix-hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="https://raw.githubusercontent.com/blixvip/pump-curve/main/assets/blix-icon.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Why your Solana WebSocket stops receiving messages, and how to keep it alive","description":"Solana logsSubscribe and accountSubscribe connections go silent without closing. How to detect a dead feed, reconnect with backoff, resubscribe, and use a heartbeat for quiet subscriptions.","url":"https://blixvip.github.io/solana-ws-keepalive/solana-websocket-stops-receiving-messages.html","datePublished":"2026-11-17","dateModified":"2026-11-17","author":{"@type":"Organization","name":"Blix","url":"https://blixvip.com"},"publisher":{"@type":"Organization","name":"Blix","url":"https://blixvip.com"}}</script>
+<style>:root{color-scheme:dark;--bg:#0a0a0b;--panel:#141416;--line:#26262a;--ink:#f3f3f5;--muted:#a0a0a8;--accent:#8fb4ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+main{max-width:780px;margin:0 auto;padding:32px 16px 64px}
+nav{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:14px;margin-bottom:36px}nav .brand{font-weight:700;color:var(--ink);margin-right:auto}
+h1{font-size:clamp(28px,5.5vw,40px);line-height:1.15;margin:0 0 12px;letter-spacing:-.02em}h2{font-size:22px;margin:40px 0 12px}h3{font-size:18px;margin:28px 0 8px}
+.lead{font-size:19px;color:var(--muted);margin:0 0 28px}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:0 0 16px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}p code,li code,td code{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+.wrap{overflow-x:auto;margin:0 0 16px}table{border-collapse:collapse;width:100%;font-size:15px}th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}th{background:var(--panel)}
+ul,ol{padding-left:22px}li{margin:6px 0}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:32px 0}.box h2{margin-top:0}
+.btn{display:inline-block;padding:10px 18px;border-radius:999px;border:1px solid var(--line);color:var(--ink);font-weight:600;margin:4px 8px 4px 0}.btn.main{background:var(--ink);color:#000;border-color:var(--ink)}.btn:hover{text-decoration:none;opacity:.9}
+.hero img{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;color:var(--ink)}.card:hover{text-decoration:none;border-color:#3a3a40}.card b{display:block;margin-bottom:4px}.card span{color:var(--muted);font-size:14px}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}</style>
+</head>
+<body>
+<main>
+<nav><a class="brand" href="https://blixvip.github.io/">BLIX open source</a><a href="https://blixvip.github.io/solana-ws-keepalive/">solana-ws-keepalive</a><a href="https://github.com/blixvip/solana-ws-keepalive">GitHub</a><a href="https://discord.gg/grokbot">Discord</a><a href="https://blixvip.com">blixvip.com</a></nav>
+<article>
+<h1>Why your Solana WebSocket stops receiving messages, and how to keep it alive</h1>
+<p class="lead">Your bot ran fine for two hours and then stopped seeing anything. No error, no close event, the socket still says it is open. This is the most common failure with Solana WebSockets, and reconnecting on close does not fix it.</p>
+<h2>What is happening</h2>
+<p>A WebSocket can die without telling you. A provider restarts a node, a load balancer drops an idle connection, or the subscription is discarded on the server while the TCP connection stays up. Your <code>onclose</code> never fires. From your side the feed just goes quiet.</p>
+<h2>The fix is to watch for silence</h2>
+<ol>
+<li><strong>Set a silence timer.</strong> Every message resets it. If nothing arrives for, say, 30 seconds, treat the socket as dead: close it and open a new one.</li>
+<li><strong>Give the handshake a deadline.</strong> A connection that never opens also fires no event on some networks.</li>
+<li><strong>Back off with jitter.</strong> Wait 0.5 s, 1 s, 2 s, up to 30 s between attempts, randomised, so a fleet of clients cut off together does not return together.</li>
+<li><strong>Resubscribe everything.</strong> Subscriptions belong to the connection. A new socket has none, and the subscription ids change.</li>
+</ol>
+<h2>The quiet-subscription problem</h2>
+<p>Silence only means something if messages are expected. An <code>accountSubscribe</code> on a wallet that trades once an hour is silent for an hour while perfectly healthy. Two options:</p>
+<ul>
+<li>set the silence limit longer than the longest normal gap, which means a dead feed goes unnoticed for that long; or</li>
+<li>add a <strong>heartbeat</strong>: a <code>slotSubscribe</code> on the same socket. Slots arrive about every 0.4 seconds, so a few seconds of silence is proof the connection is gone.</li>
+</ul>
+<h2>What you still lose</h2>
+<p>Whatever happened while the socket was down is not replayed. If you need every transaction, backfill after reconnecting: call <code>getSignaturesForAddress</code> over HTTP for the gap.</p>
+<h2>Working code</h2>
+<p><a href="https://github.com/blixvip/solana-ws-keepalive">solana-ws-keepalive</a> does the silence timer, handshake deadline, backoff, resubscribe and heartbeat, with no dependencies:</p>
+<pre><code>import { createStream } from "solana-ws-keepalive";
+
+const stream = createStream({
+  url: "wss://your-rpc.example/?api-key=...",
+  silentMs: 30_000,
+  heartbeat: true,
+  onState: (state, info) =&gt; console.log(state, info.why ?? ""),
+});
+
+stream.subscribe("logsSubscribe",
+  [{ mentions: ["&lt;program or wallet&gt;"] }, { commitment: "confirmed" }],
+  (result) =&gt; console.log(result.value.signature));</code></pre>
+<pre><code>npx github:blixvip/solana-ws-keepalive logs &lt;address&gt;</code></pre>
+<p>Several subscriptions share one socket and all come back after a reconnect. Node 22 or newer has <code>WebSocket</code> built in; on older versions pass the <code>ws</code> package.</p>
+</article>
+<div class="box"><h2>Want it done for you?</h2>
+<p>This is the small, open version. <a href="https://blixvip.com">Blix</a> is the AI-powered Solana memecoin terminal it comes from: every pump.fun launch live, AI coin ratings, narratives, wallet and X tracking, and one-click trading with 0% fees. There is a <a href="https://blixvip.com/api">public API</a> and an <a href="https://blixvip.com/mcp">MCP server</a> too.</p>
+<p><a class="btn main" href="https://blixvip.com">Start trading on Blix</a><a class="btn" href="https://discord.gg/grokbot">Join the Discord</a></p></div>
+<h2>Help build it</h2>
+<p>solana-ws-keepalive is open source and takes pull requests. There are <a href="https://github.com/blixvip/solana-ws-keepalive/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22">good first issues</a> with step-by-step instructions, and setup is <code>git clone</code> and <code>npm test</code>.</p>
+<h2>More guides</h2>
+<div class="grid"><a class="card" href="https://blixvip.github.io/pump-curve/pump-fun-market-cap-without-api.html"><b>How to get a pump.fun token's market cap and bonding curve progress without an API</b><span>pump-curve</span></a><a class="card" href="https://blixvip.github.io/pump-stream/detect-new-pump-fun-tokens-in-real-time.html"><b>How to detect new pump.fun tokens in real time (and stream every trade)</b><span>pump-stream</span></a><a class="card" href="https://blixvip.github.io/sol-holders/solana-token-top-10-holders-percentage.html"><b>How to calculate a Solana token's top 10 holders percentage (and why explorers overstate it)</b><span>sol-holders</span></a><a class="card" href="https://blixvip.github.io/solana-swap-parser/parse-solana-swap-transaction-any-dex.html"><b>How to parse a Solana swap transaction for any DEX</b><span>solana-swap-parser</span></a><a class="card" href="https://blixvip.github.io/solana-rpc-pool/fix-solana-rpc-429-too-many-requests.html"><b>How to stop Solana RPC 429 errors (Too Many Requests)</b><span>solana-rpc-pool</span></a></div>
+<footer>Written by the <a href="https://blixvip.com">Blix</a> team. Code is MIT licensed. <a href="https://github.com/blixvip">github.com/blixvip</a> · <a href="https://discord.gg/grokbot">discord.gg/grokbot</a> · <a href="https://blixvip.github.io/">All tools and guides</a></footer>
+</main>
+</body>
+</html>
