@@ -125,13 +125,16 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Questions go in the [Discord](https://di
 
 | | |
 |---|---|
-| [solana-rpc-pool](https://github.com/blixvip/solana-rpc-pool) | A Solana RPC load balancer: several endpoints, rate limits, failover |
 | [pump-curve](https://github.com/blixvip/pump-curve) | Read a pump.fun bonding curve: price, market cap, progress, migration |
+| [pump-stream](https://github.com/blixvip/pump-stream) | Every pump.fun launch and trade, live over one WebSocket |
 | [sol-holders](https://github.com/blixvip/sol-holders) | Top holders of any Solana token, with pools and curves left out |
+| [solana-swap-parser](https://github.com/blixvip/solana-swap-parser) | What a Solana transaction traded: wallet, sold, bought, price, DEX |
+| [solana-rpc-pool](https://github.com/blixvip/solana-rpc-pool) | A Solana RPC load balancer: several endpoints, rate limits, failover |
 
 **[Blix](https://blixvip.com)** is a Solana memecoin terminal with 0% fees on every trade: every pump.fun launch live, AI coin ratings, narratives, wallet and X tracking, and one-click trading.
 
 - Website: **https://blixvip.com**
+- This project's page: https://blixvip.github.io/solana-ws-keepalive/
 - Public API: https://blixvip.com/api &nbsp;·&nbsp; MCP server for AI agents: https://blixvip.com/mcp
 - More open source from the same team: https://github.com/blixvip
 - Questions, ideas, or help with this library: **[discord.gg/grokbot](https://discord.gg/grokbot)**
