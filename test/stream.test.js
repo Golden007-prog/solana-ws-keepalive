@@ -18,6 +18,20 @@ function fakeSockets() {
 const tick = (ms) => new Promise((ok) => setTimeout(ok, ms));
 const quick = { minBackoffMs: 5, maxBackoffMs: 20, handshakeMs: 200 };
 
+function openSubscriptions(socket, ...remoteIds) {
+  socket.open();
+  for (const [index, remote] of remoteIds.entries()) {
+    socket.say({ id: socket.sent[index].id, result: remote });
+  }
+}
+
+function logNotification(socket, subscription, signature) {
+  socket.say({
+    method: "logsNotification",
+    params: { subscription, result: { context: { slot: 5 }, value: { signature } } },
+  });
+}
+
 test("data reaches the subscriber that asked for it", () => {
   const { Fake, all } = fakeSockets(), got = [];
   const s = createStream({ WebSocket: Fake, ...quick });
@@ -44,6 +58,55 @@ test("a closed socket is replaced and every subscription is sent again", async (
   assert.deepEqual(states.filter((x) => x === "open").length, 2);
   assert.equal(s.stats().reconnects, 1);
   s.close();
+});
+
+test("log-signature deduplication survives reconnects and is scoped to each subscription", async (t) => {
+  const { Fake, all } = fakeSockets(), first = [], second = [];
+  const s = createStream({ WebSocket: Fake, ...quick, dedupe: true });
+  t.after(() => s.close());
+  s.subscribe("logsSubscribe", ["all"], (d) => first.push(d.value.signature));
+  s.subscribe("logsSubscribe", ["all"], (d) => second.push(d.value.signature));
+  openSubscriptions(all[0], 10, 20);
+  logNotification(all[0], 10, "same");
+  all[0].die();
+  await tick(60);
+  openSubscriptions(all[1], 30, 40);
+  logNotification(all[1], 30, "same");
+  logNotification(all[1], 40, "same");
+  logNotification(all[1], 30, "next");
+  assert.deepEqual(first, ["same", "next"]);
+  assert.deepEqual(second, ["same"]);
+});
+
+test("the dedupe window evicts older signatures", (t) => {
+  const { Fake, all } = fakeSockets(), got = [];
+  const s = createStream({ WebSocket: Fake, ...quick, dedupe: true });
+  t.after(() => s.close());
+  s.subscribe("logsSubscribe", ["all"], (d) => got.push(d.value.signature));
+  openSubscriptions(all[0], 10);
+  for (let i = 0; i <= 256; i++) logNotification(all[0], 10, `tx-${i}`);
+  logNotification(all[0], 10, "tx-256");
+  logNotification(all[0], 10, "tx-0");
+  assert.equal(got.length, 258);
+  assert.equal(got.at(-1), "tx-0");
+});
+
+test("dedupe is opt-in and leaves notifications without usable identities alone", (t) => {
+  const { Fake, all } = fakeSockets(), got = [];
+  const defaults = createStream({ WebSocket: Fake, ...quick });
+  const enabled = createStream({ WebSocket: Fake, ...quick, dedupe: true });
+  t.after(() => { defaults.close(); enabled.close(); });
+  defaults.subscribe("logsSubscribe", ["all"], (d) => got.push(d.value.signature));
+  enabled.subscribe("logsSubscribe", ["all"], (d) => got.push(d.value.signature));
+  enabled.subscribe("accountSubscribe", ["A"], (d) => got.push(d.value.signature));
+  openSubscriptions(all[0], 10);
+  openSubscriptions(all[1], 20, 30);
+  for (let i = 0; i < 2; i++) {
+    logNotification(all[0], 10, "default");
+    logNotification(all[1], 20, undefined);
+    all[1].say({ method: "accountNotification", params: { subscription: 30, result: { value: { signature: "account" } } } });
+  }
+  assert.deepEqual(got, ["default", undefined, "account", "default", undefined, "account"]);
 });
 
 test("a feed that goes silent is treated as dead, though the socket never closed", async () => {

@@ -82,6 +82,7 @@ Set `SOLANA_WS_URL` to your own endpoint. The public one works for a quick look 
 | `url` | the public endpoint | `wss://` URL. |
 | `silentMs` | `30000` | Silence that counts as a dead feed. |
 | `heartbeat` | `false` | Add a slot subscription as a liveness signal. |
+| `dedupe` | `false` | Skip repeats of the last 256 distinct transaction signatures per `logsSubscribe` subscription, including across reconnects. |
 | `handshakeMs` | `10000` | Longest a connection may take to open. |
 | `minBackoffMs` / `maxBackoffMs` | `500` / `30000` | Reconnect delays. |
 | `onState` | none | Called with `connecting`, `open`, `reconnecting`, `closed`. |

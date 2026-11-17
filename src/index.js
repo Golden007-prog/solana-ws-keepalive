@@ -6,6 +6,7 @@
 
 export const PUBLIC_WS = "wss://api.mainnet-beta.solana.com";
 
+const RECENT_SIGNATURE_LIMIT = 256;
 const hostOf = (url) => { try { return new URL(url).host; } catch { return "endpoint"; } };
 
 /**
@@ -15,13 +16,14 @@ const hostOf = (url) => { try { return new URL(url).host; } catch { return "endp
  * @param {number} [options.silentMs=30000]   No message for this long means the feed is dead: reconnect.
  * @param {boolean} [options.heartbeat=false] Also subscribe to slots on the same socket, so a quiet subscription
  *                                            (a wallet that rarely trades) still proves the socket is alive every ~0.4 s.
+ * @param {boolean} [options.dedupe=false] Suppress recent duplicate signatures for each logs subscription.
  * @param {number} [options.handshakeMs=10000] How long connecting and each subscribe confirmation may take.
  * @param {number} [options.minBackoffMs=500]
  * @param {number} [options.maxBackoffMs=30000]
  * @param {(state: 'connecting'|'open'|'reconnecting'|'closed', info: object) => void} [options.onState]
  * @param {typeof WebSocket} [options.WebSocket] A WebSocket class to use instead of the global one (tests, the `ws` package).
  */
-export function createStream({ url = PUBLIC_WS, silentMs = 30_000, heartbeat = false, handshakeMs = 10_000, minBackoffMs = 500, maxBackoffMs = 30_000, onState = null, WebSocket: WS = globalThis.WebSocket } = {}) {
+export function createStream({ url = PUBLIC_WS, silentMs = 30_000, heartbeat = false, dedupe = false, handshakeMs = 10_000, minBackoffMs = 500, maxBackoffMs = 30_000, onState = null, WebSocket: WS = globalThis.WebSocket } = {}) {
   if (typeof WS !== "function") throw new Error("No WebSocket here: use Node 22+ or pass { WebSocket } (for example from the `ws` package).");
   const subs = new Map();        // local key -> { method, params, onData, onError, id (request), remote (subscription id) }
   const stats = { state: "idle", endpoint: hostOf(url), connects: 0, reconnects: 0, messages: 0, lastMessageAt: 0, lastError: null, silences: 0 };
@@ -71,7 +73,19 @@ export function createStream({ url = PUBLIC_WS, silentMs = 30_000, heartbeat = f
       }
       const remote = m.params?.subscription;
       if (remote == null) return;
-      for (const sub of subs.values()) if (sub.remote === remote) { try { sub.onData(m.params.result, m); } catch {} }
+      for (const sub of subs.values()) {
+        if (sub.remote !== remote) continue;
+        const result = m.params.result;
+        const signature = result?.value?.signature;
+        if (sub.recentSignatures && typeof signature === "string" && signature.length > 0) {
+          if (sub.recentSignatures.has(signature)) continue;
+          sub.recentSignatures.add(signature);
+          if (sub.recentSignatures.size > RECENT_SIGNATURE_LIMIT) {
+            sub.recentSignatures.delete(sub.recentSignatures.values().next().value);
+          }
+        }
+        try { sub.onData(result, m); } catch {}
+      }
     };
     sock.onerror = () => { if (mine === epoch) stats.lastError = "socket error"; };
     sock.onclose = (ev) => { if (mine === epoch) drop(`closed${ev?.code ? ` (${ev.code})` : ""}`, true); };
@@ -100,7 +114,9 @@ export function createStream({ url = PUBLIC_WS, silentMs = 30_000, heartbeat = f
     if (typeof onData !== "function") throw new TypeError("subscribe(method, params, onData): onData must be a function");
     if (closed) throw new Error("this stream is closed");
     const key = nextKey++;
-    const sub = { method, params, onData, onError, id: null, remote: null };
+    // A signature identifies a log transaction. Other feeds have different identities and replay rules.
+    const recentSignatures = dedupe && method === "logsSubscribe" ? new Set() : null;
+    const sub = { method, params, onData, onError, id: null, remote: null, recentSignatures };
     subs.set(key, sub);
     if (heartbeat && beatKey == null && method !== "slotSubscribe") { beatKey = nextKey++; subs.set(beatKey, { method: "slotSubscribe", params: [], onData() {}, onError: null, id: null, remote: null }); if (ws && stats.state === "open") sendSub(subs.get(beatKey)); }
     if (ws && stats.state === "open") sendSub(sub); else connect();
